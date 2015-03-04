@@ -432,6 +432,8 @@
   #t)
 
 
+;; Our relational interpreter can also generate quines, which are
+;; Scheme expressions that evaluate to themselves.
 (test "simple quines"
   (run 5 (q) (evalo q q))
   '(#t
@@ -463,7 +465,8 @@
      (sym _.0))))
 
 
-
+;; And, of course, we can generate quines in the context of the
+;; definition of 'append'.
 (define quines-in-context-of-append
   (run 60 (q)
     (evalo
@@ -474,6 +477,9 @@
         ,q)
      q)))
 
+
+;; Here are a few of the generated quines.  All but the first and last
+;; example use 'append'.
 
 (test "quines-in-context-of-append-1"
   (member? '((apply (lambda _.0 (list 'apply _.0 (list 'quote _.0)))
