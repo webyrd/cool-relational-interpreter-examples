@@ -1,7 +1,20 @@
+;; This version of the relational interpreter in
+;; 'interp-with-variadic-lambda.scm' supports 'apply', variadic
+;; 'lambda'/application, multi-argument 'lambda'/application, and a
+;; fair number of built-ins, such as 'quote', 'list', and 'cons'.
+;;
+;; Importantly, 'apply' has been moved towards the top of the 'conde'
+;; in 'eval-expo', ensuring that the answers will contain many uses of
+;; 'apply'.  In general, to get more answers containing a form or
+;; primitive function, move the form towards the top of the 'conde' in
+;; 'eval-expo' (and vice versa to de-emphasize a form).  The ordering
+;; of the 'conde' clauses give us some crude control over how
+;; miniKanren explores the search space of terms.
 (load "interp-with-variadic-lambda.scm")
 (load "../test-check.scm")
 (load "../matche.scm")
 
+;; Helper Scheme predicate for testing
 (define member? (lambda (x ls) (not (not (member x ls)))))
 
 ;; Standard Scheme definition of append.  I've wrapped the definition
