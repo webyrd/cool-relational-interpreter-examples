@@ -36,7 +36,7 @@
 
 
 ;; Our normal relational 'appendo' definition, written in miniKanren.
-;; It doesn't look all that Scheme like, unfortunately.
+;; 'appendo' doesn't look very Scheme-like, unfortunately.
 (let ()
 
   (define appendo
