@@ -2,6 +2,8 @@
 (load "../test-check.scm")
 (load "../matche.scm")
 
+(define member? (lambda (x ls) (not (not (member x ls)))))
+
 ;; Standard Scheme definition of append.  I've wrapped the definition
 ;; in a 'let' to avoid shadowing Scheme's built-in 'append'
 ;; definition.
@@ -178,26 +180,45 @@
     ('(a b c d) '(e))
     ('(a b c d e) '())
     ('(a b c d e) (list))
-    ((list) '(a b c d e))
+    (('() (apply (lambda _.0 '(a b c d e)) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    (('(a b c d e) (apply (lambda _.0 _.0) '()))
+     (sym _.0))
+    (('(a) (apply (lambda _.0 '(b c d e)) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    (('(a b) (apply (lambda _.0 '(c d e)) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    (('(a b c) (apply (lambda _.0 '(d e)) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    (('(a b c d) (apply (lambda _.0 '(e)) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    (('(a b c d e) (apply (lambda _.0 '()) '()))
+     (=/= ((_.0 quote)))
+     (sym _.0))
     ('(a b c d) (list 'e))
-    ('(a b c) (list 'd 'e))
-    ('(a b) (list 'c 'd 'e))
-    ((list 'a) '(b c d e))
-    ('(a) (list 'b 'c 'd 'e))
-    (('(a b c d e) ((lambda _.0 _.0)))
+    (('(a b c d) (apply (lambda _.0 _.0) '(e)))
      (sym _.0))
-    (('() ((lambda _.0 '(a b c d e)))) (=/= ((_.0 quote)))
-     (sym _.0))
-    (('(a) ((lambda _.0 '(b c d e)))) (=/= ((_.0 quote)))
-     (sym _.0))
-    (('(a b) ((lambda _.0 '(c d e)))) (=/= ((_.0 quote)))
-     (sym _.0))
-    (('(a b c) ((lambda _.0 '(d e)))) (=/= ((_.0 quote)))
-     (sym _.0))
-    (('(a b c d) ((lambda _.0 '(e)))) (=/= ((_.0 quote)))
-     (sym _.0))
-    (('(a b c d e) ((lambda _.0 '()))) (=/= ((_.0 quote)))
-     (sym _.0))))
+    (('() (apply (lambda _.0 '(a b c d e)) '(_.1)))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))
+    (('(a) (apply (lambda _.0 '(b c d e)) '(_.1)))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))
+    (('(a b) (apply (lambda _.0 '(c d e)) '(_.1)))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))
+    (('(a b c) (apply (lambda _.0 '(d e)) '(_.1)))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))))
 
 ;; Sure enough, later answers call 'list', and even use variadic
 ;; 'lambda' and procedure application.  So our Scheme 'append',
@@ -223,3 +244,272 @@
     ((a b c) (d e))
     ((a b c d) (e))
     ((a b c d e) ())))
+
+
+;; infer the actual use of 'append' in the call
+
+;; cheats
+(test "infer-append-use-1"
+  (run 1 (q)
+    (evalo
+     `(letrec ((append (lambda (l s)
+                         (if (null? l)
+                             s
+                             (cons (car l) (append (cdr l) s))))))
+        (,q '(a b c) '(d e)))
+     '(a b c d e)))
+  '(((lambda _.0 '(a b c d e)) (=/= ((_.0 quote))) (sym _.0))))
+
+;; use absento to get non-cheating answers
+(test "infer-append-use-2"
+  (run 2 (q)
+    (evalo
+     `(letrec ((append (lambda (l s)
+                         (if (null? l)
+                             s
+                             (cons (car l) (append (cdr l) s))))))
+        (,q '(a b c) '(d e)))
+     '(a b c d e))
+    (absento 'a q))
+  '(append
+    ((apply (lambda _.0 append) '())
+     (=/= ((_.0 a)) ((_.0 append)))
+     (sym _.0))))
+
+
+(test "infer-car-1"
+  (run 2 (q)
+    (absento 'a q)
+    (evalo
+     `(letrec ((append (lambda (l s)
+                         (if (null? l)
+                             s
+                             (cons ,q (append (cdr l) s))))))
+        (append '(a b c) '(d e)))
+     '(a b c d e)))
+  '((car l)
+    ((apply (lambda _.0 (car l)) s)
+     (=/= ((_.0 a)) ((_.0 car)) ((_.0 l))) (sym _.0))))
+
+
+
+
+(define I-love-you-append (run 1000 (q)
+                            (evalo
+                             `(letrec ((append (lambda (l s)
+                                                 (if (null? l)
+                                                     s
+                                                     (cons (car l) (append (cdr l) s))))))
+                                ,q)
+                             '(I love you))))
+
+;; a few interesting answers...
+
+(test "I-love-you-append-1"
+  (member? '(apply append '((I love) (you)))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-2"
+  (member? '((apply (lambda _.0 (apply append '((I love) (you)))) '())
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 quote)))
+             (sym _.0))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-3"
+  (member? '(((lambda _.0 '(I love you)) append append append append)
+             (=/= ((_.0 quote))) (sym _.0))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-4"
+  (member? '((apply (lambda _.0 (apply append '((I) (love you)))) '())
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 quote)))
+             (sym _.0))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-5"
+  (member? '((apply append (apply (lambda _.0 '((I love) (you))) '()))
+             (=/= ((_.0 quote))) (sym _.0))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-6"
+  (member? '((apply (lambda _.0 (car _.0)) '((I love you)))
+             (=/= ((_.0 car))) (sym _.0))
+           I-love-you-append)
+  #t)
+
+(test "I-love-you-append-7"
+  (member? '(((lambda _.0 '(I love you)) append append append append)
+             (=/= ((_.0 quote))) (sym _.0))
+           I-love-you-append)
+  #t)
+
+
+(test "simple quines"
+  (run 5 (q) (evalo q q))
+  '(#t
+    #f
+    ((apply
+      (lambda _.0
+        (list 'apply (apply (lambda (_.1) _.1) _.0)
+              (list 'quote _.0)))
+      '((lambda _.0
+          (list 'apply (apply (lambda (_.1) _.1) _.0)
+                (list 'quote _.0)))))
+     (=/= ((_.0 apply)) ((_.0 closure)) ((_.0 lambda))
+          ((_.0 list)) ((_.0 quote)) ((_.1 closure)))
+     (sym _.0 _.1))
+    ((apply
+      (lambda _.0
+        (list (apply (lambda _.1 'apply) '())
+              (apply (lambda (_.2) _.2) _.0) (list 'quote _.0)))
+      '((lambda _.0
+          (list (apply (lambda _.1 'apply) '())
+                (apply (lambda (_.2) _.2) _.0) (list 'quote _.0)))))
+     (=/= ((_.0 apply)) ((_.0 closure)) ((_.0 lambda))
+          ((_.0 list)) ((_.0 quote)) ((_.1 closure))
+          ((_.1 quote)) ((_.2 closure)))
+     (sym _.0 _.1 _.2))
+    ((apply (lambda _.0 (list 'apply _.0 (list 'quote _.0)))
+            '(lambda _.0 (list 'apply _.0 (list 'quote _.0))))
+     (=/= ((_.0 closure)) ((_.0 list)) ((_.0 quote)))
+     (sym _.0))))
+
+
+
+(define quines-in-context-of-append
+  (run 60 (q)
+    (evalo
+     `(letrec ((append (lambda (l s)
+                         (if (null? l)
+                             s
+                             (cons (car l) (append (cdr l) s))))))
+        ,q)
+     q)))
+
+
+(test "quines-in-context-of-append-1"
+  (member? '((apply (lambda _.0 (list 'apply _.0 (list 'quote _.0)))
+                    '(lambda _.0 (list 'apply _.0 (list 'quote _.0))))
+             (=/= ((_.0 closure)) ((_.0 list)) ((_.0 quote)))
+             (sym _.0))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-2"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply append _.0) (list 'quote _.0)))
+              '(()
+                (lambda _.0
+                  (list 'apply (apply append _.0) (list 'quote _.0)))))
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 closure))
+                  ((_.0 list)) ((_.0 quote)))
+             (sym _.0))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-3"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply append _.0)
+                      ((lambda _.1 _.1) 'quote _.0)))
+              '(()
+                (lambda _.0
+                  (list 'apply (apply append _.0)
+                        ((lambda _.1 _.1) 'quote _.0)))))
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 closure))
+                  ((_.0 lambda)) ((_.0 list)) ((_.0 quote))
+                  ((_.1 closure)))
+             (sym _.0 _.1))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-4"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply append _.0)
+                      (apply (lambda _.1 (list 'quote _.1)) _.0)))
+              '(()
+                (lambda _.0
+                  (list 'apply (apply append _.0)
+                        (apply (lambda _.1 (list 'quote _.1)) _.0)))))
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 closure))
+                  ((_.0 lambda)) ((_.0 list)) ((_.0 quote))
+                  ((_.1 closure)) ((_.1 list)) ((_.1 quote)))
+             (sym _.0 _.1))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-5"
+  (member? '((apply
+              (lambda _.0
+                (list (apply (lambda _.1 'apply) _.0)
+                      (apply append _.0) (list 'quote _.0)))
+              '(()
+                (lambda _.0
+                  (list (apply (lambda _.1 'apply) _.0)
+                        (apply append _.0) (list 'quote _.0)))))
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 closure))
+                  ((_.0 lambda)) ((_.0 list)) ((_.0 quote))
+                  ((_.1 closure)) ((_.1 quote)))
+             (sym _.0 _.1))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-6"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply append _.0)
+                      (apply (lambda _.1 (list 'quote _.0)) _.0)))
+              '(()
+                (lambda _.0
+                  (list 'apply (apply append _.0)
+                        (apply (lambda _.1 (list 'quote _.0)) _.0)))))
+             (=/= ((_.0 _.1)) ((_.0 append)) ((_.0 apply))
+                  ((_.0 closure)) ((_.0 lambda)) ((_.0 list))
+                  ((_.0 quote)) ((_.1 closure)) ((_.1 list))
+                  ((_.1 quote)))
+             (sym _.0 _.1))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-7"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply append _.0)
+                      (list 'quote (apply (lambda _.1 _.1) _.0))))
+              '(()
+                (lambda _.0
+                  (list 'apply (apply append _.0)
+                        (list 'quote (apply (lambda _.1 _.1) _.0))))))
+             (=/= ((_.0 append)) ((_.0 apply)) ((_.0 closure))
+                  ((_.0 lambda)) ((_.0 list)) ((_.0 quote))
+                  ((_.1 closure)))
+             (sym _.0 _.1))
+           quines-in-context-of-append)
+  #t)
+
+(test "quines-in-context-of-append-8"
+  (member? '((apply
+              (lambda _.0
+                (list 'apply (apply (lambda (_.1) _.1) _.0)
+                      (apply (lambda _.2 ((lambda _.3 _.3) 'quote _.2))
+                             _.0)))
+              '((lambda _.0
+                  (list 'apply (apply (lambda (_.1) _.1) _.0)
+                        (apply (lambda _.2 ((lambda _.3 _.3) 'quote _.2))
+                               _.0)))))
+             (=/= ((_.0 apply)) ((_.0 closure)) ((_.0 lambda))
+                  ((_.0 list)) ((_.0 quote)) ((_.1 closure))
+                  ((_.2 closure)) ((_.2 lambda)) ((_.2 quote))
+                  ((_.3 closure)))
+             (sym _.0 _.1 _.2 _.3))
+           quines-in-context-of-append)
+  #t)
+
+

@@ -95,15 +95,13 @@
 (define eval-expo
   (lambda (exp env val)
     (conde
+
       ((== `(quote ,val) exp)
        (absento 'closure val)
        (not-in-envo 'quote env))
-      ((symbolo exp) (lookupo exp env val))
-      ((fresh (a*)
-         (== `(list . ,a*) exp)
-         (not-in-envo 'list env)
-         (eval-listo a* env val)))
 
+      ((symbolo exp) (lookupo exp env val))
+      
       ;; should possibly combine these lambda clauses, application clauses, apply clauses, and letrec clauses
 
       ((fresh (x body)
@@ -117,6 +115,33 @@
          (== `(closure (lambda ,x* ,body) ,env) val)
          (list-of-symbolso x*)
          (not-in-envo 'lambda env)))
+      
+      ;; apply for variadic procedure
+      ((fresh (e e* x body env^ a* res)
+         (== `(apply ,e ,e*) exp)
+         (not-in-envo 'apply env)
+         (symbolo x)
+         (== `(ext-env ,x ,a* ,env^) res)
+         (eval-expo e env `(closure (lambda ,x ,body) ,env^))
+         (eval-expo e* env a*)
+         (listo a*)
+         (eval-expo body res val)))
+
+      ;; apply for mult-argument procedure
+      ((fresh (e e* x x* body env^ a* res)
+         (== `(apply ,e ,e*) exp)
+         (not-in-envo 'apply env)
+         (symbolo x)
+         (ext-env*o `(,x . ,x*) a* env^ res)
+         (eval-expo e env `(closure (lambda (,x . ,x*) ,body) ,env^))
+         (eval-expo e* env a*)
+         (listo a*)
+         (eval-expo body res val)))
+      
+      ((fresh (a*)
+         (== `(list . ,a*) exp)
+         (not-in-envo 'list env)
+         (eval-listo a* env val)))
       
       ((fresh (rator x rands body env^ a* res)
          (== `(,rator . ,rands) exp)
@@ -155,26 +180,6 @@
          (eval-expo letrec-body
                     `(ext-rec ((,p-name (lambda ,x* ,body))) ,env)
                     val)))
-
-      ((fresh (e e* x body env^ a* res)
-         (== `(apply ,e ,e*) exp)
-         (not-in-envo 'apply env)
-         (symbolo x)
-         (== `(ext-env ,x ,a* ,env^) res)
-         (eval-expo e env `(closure (lambda ,x ,body) ,env^))
-         (eval-expo e* env a*)
-         (listo a*)
-         (eval-expo body res val)))
-
-      ((fresh (e e* x x* body env^ a* res)
-         (== `(apply ,e ,e*) exp)
-         (not-in-envo 'apply env)
-         (symbolo x)
-         (ext-env*o `(,x . ,x*) a* env^ res)
-         (eval-expo e env `(closure (lambda (,x . ,x*) ,body) ,env^))
-         (eval-expo e* env a*)
-         (listo a*)
-         (eval-expo body res val)))
       
       ;;; don't comment this out accidentally!!!
       ((prim-expo exp env val))
