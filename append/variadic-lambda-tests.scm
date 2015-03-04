@@ -299,6 +299,18 @@
      (sym _.0))))
 
 
+;; We can also infer missing sub-expressions from the definition of
+;; 'append'.  Here we infer the missing '(car l)' call from the 'else'
+;; branch of the 'if' expression.  The second answer is an expression
+;; whose behavior is equivalent to that of '(car l)'.
+;;
+;; Several subexpressions are quick to infer.  Other subexpressions
+;; take a very long time to infer.  The interpreter cannot (yet) be
+;; practically used for example-based program synthesis of programs
+;; like 'append', but there may be improvements to the miniKanren
+;; implementation, the relational interpreter, and our inference
+;; techniques which would make example-based synthesis feasible in
+;; practice.  We are currently exploring this research area.
 (test "infer-car-1"
   (run 2 (q)
     (absento 'a q)
