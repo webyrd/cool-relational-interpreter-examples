@@ -11,8 +11,8 @@
 ;; of the 'conde' clauses give us some crude control over how
 ;; miniKanren explores the search space of terms.
 (load "interp-with-variadic-lambda.scm")
-(load "../test-check.scm")
-(load "../matche.scm")
+(load "../mk/test-check.scm")
+(load "../mk/matche.scm")
 
 ;; Helper Scheme predicate for testing
 (define member? (lambda (x ls) (not (not (member x ls)))))

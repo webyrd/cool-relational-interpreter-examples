@@ -1,6 +1,13 @@
 # cool-relational-interpreter-examples
 Fun, interesting, and thought-provoking examples of relational Scheme interpreters at work.
 
+The miniKanren implementation is a git submodule.  Once you clone this repo, you can get the miniKanren implementation by running:
+
+```
+git submodule init
+git submodule update
+```
+
 All examples run under Vicare Scheme.  OS X users may be interested in Michael Ballantyne's Homebrew formula for Vicare:
 
 https://github.com/michaelballantyne/homebrew-vicare

@@ -1,4 +1,4 @@
-(load "../mk.scm")
+(load "../mk/mk.scm")
 
 ;; supports variadic lambda: (lambda x x)
 
