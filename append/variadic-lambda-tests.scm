@@ -326,8 +326,55 @@
      (=/= ((_.0 a)) ((_.0 car)) ((_.0 l))) (sym _.0))))
 
 
+;; One fun thing we can do with the relational interpreter is generate
+;; Scheme programs that evaluate to a given value.  For example, here
+;; are ten Scheme expressions that evaluate to the list '(I love you)'.
+(test "I-love-you-1"
+  (run 10 (q)
+    (evalo
+     q
+     '(I love you)))
+  '('(I love you)
+    ((apply (lambda _.0 '(I love you)) '())
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    ((apply (lambda _.0 '(I love you)) '(_.1))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))
+    ((apply (lambda _.0 '(I love you)) '(_.1 _.2))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1) (closure _.2)))
+    ((apply (lambda (_.0) '(I love you)) '(_.1))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))
+    ((apply (lambda (_.0) _.0) '((I love you)))
+     (sym _.0))
+    (list 'I 'love 'you)
+    (((lambda _.0 '(I love you)))
+     (=/= ((_.0 quote)))
+     (sym _.0))
+    ((apply (lambda _.0 '(I love you)) '(_.1 _.2 _.3))
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1) (closure _.2) (closure _.3)))
+    (((lambda _.0 '(I love you)) '_.1)
+     (=/= ((_.0 quote)))
+     (sym _.0)
+     (absento (closure _.1)))))
 
 
+;; Here is where the real fun begins!
+;;
+;; We can run a similar query to the one above, generating one
+;; thousand Scheme expressions that evaluate to the list '(I love you)'.
+;; However, we introduce a new twist.  We place the query variable
+;; in the body of the 'letrec' in which we have defined 'append'.
+;; Therefore, miniKanren is free to infer expressions that use 'append',
+;; even though 'append' is not one of the primitives built into
+;; the relational Scheme interpreter!
 (define I-love-you-append (run 1000 (q)
                             (evalo
                              `(letrec ((append (lambda (l s)
@@ -337,7 +384,7 @@
                                 ,q)
                              '(I love you))))
 
-;; a few interesting answers...
+;; Here are a few interesting answers, all of which evaluate to '(I love you)'.
 
 (test "I-love-you-append-1"
   (member? '(apply append '((I love) (you)))
@@ -376,6 +423,8 @@
            I-love-you-append)
   #t)
 
+;; This example illustrates how 'append' can be used as a "dummy" value,
+;; passed into the variadic function but never used.
 (test "I-love-you-append-7"
   (member? '(((lambda _.0 '(I love you)) append append append append)
              (=/= ((_.0 quote))) (sym _.0))
