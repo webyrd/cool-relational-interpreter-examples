@@ -259,9 +259,12 @@
     ((a b c d e) ())))
 
 
-;; infer the actual use of 'append' in the call
+;; In addition to inferring the two list arguments in an 'append'
+;; call, we can infer the actual use of 'append' in the call!
 
-;; cheats
+;; Our first attempt to infer the use of 'append' is unsuccessful.
+;; miniKanren "cheats" by generating a variadic lambda expression
+;; whose body returns the "output" list.
 (test "infer-append-use-1"
   (run 1 (q)
     (evalo
@@ -273,7 +276,13 @@
      '(a b c d e)))
   '(((lambda _.0 '(a b c d e)) (=/= ((_.0 quote))) (sym _.0))))
 
-;; use absento to get non-cheating answers
+;; We can use the 'absento' constraint to keep miniKanren from
+;; cheating.  The constraint '(absento 'a q)' ensures that the symbol
+;; 'a'---which occurs in both the input to the call and the output---
+;; does not occur in the expression we are trying to infer.
+;;
+;; This results in the expected answer, 'append', and a second
+;; expression that also evaluates to the append procedure.
 (test "infer-append-use-2"
   (run 2 (q)
     (evalo
