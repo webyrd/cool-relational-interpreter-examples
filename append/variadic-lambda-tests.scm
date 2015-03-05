@@ -1,4 +1,4 @@
-;; This version of the relational interpreter in
+;; The version of the relational interpreter in
 ;; 'interp-with-variadic-lambda.scm' supports 'apply', variadic
 ;; 'lambda'/application, multi-argument 'lambda'/application, and a
 ;; fair number of built-ins, such as 'quote', 'list', and 'cons'.

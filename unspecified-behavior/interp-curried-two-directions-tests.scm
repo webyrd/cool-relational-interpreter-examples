@@ -1,5 +1,14 @@
-(load "../mk/test-check.scm")
+;; The file 'interp-curried-two-directions.scm' contains *two*
+;; relational Scheme interpreters, which differ in their evaluation
+;; order for (curried) application and for evaluation order of the
+;; arguments to 'cons'.
+;;
+;; The 'eval-left-to-righto' relation evaluates arguments in
+;; left-to-right order, while the 'eval-right-to-lefto' relation
+;; evaluates arguments in right-to-left order.
 (load "interp-curried-two-directions.scm")
+(load "../mk/test-check.scm")
+
 
 ;; Find a program that evaluates to different values under
 ;; left-to-right and right-to-left evaluation:
