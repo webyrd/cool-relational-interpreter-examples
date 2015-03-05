@@ -21,3 +21,5 @@ https://github.com/michaelballantyne/homebrew-vicare
 The examples in `append/variadic-lambda-tests.scm` concentrate on uses of `append` (list concatenation) in a relational Scheme interpreter supporting variadic functions, `apply`, `letrec`, `list`, `car`, `cdr`, `cons`, and other built-ins.  The examples show how `append` can be implemented using the normal Scheme definition, but treated as a relation, since the interpreter itself is a relation.  The resulting relational behavior of `append` is strictly more general than that of the `appendo` goal often shown in miniKanren tutorials.
 
 ---
+
+The examples in `unspecified-behavior/interp-curried-two-directions-tests.scm` show how we can infer Scheme expressions whose values differ under left-to-right and right-to-left evaluation orders.  The inferred expressions can be shown to return different values under Vicare Scheme, Petite Chez Scheme, and Racket.
