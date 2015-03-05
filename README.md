@@ -22,4 +22,4 @@ The examples in `append/variadic-lambda-tests.scm` concentrate on uses of `appen
 
 ---
 
-The examples in `unspecified-behavior/interp-curried-two-directions-tests.scm` show how we can infer Scheme expressions whose values differ under left-to-right and right-to-left evaluation orders.  The inferred expressions can be shown to return different values under Vicare Scheme, Petite Chez Scheme, and Racket.
+The examples in `unspecified-behavior/interp-curried-two-directions-tests.scm` show how we can infer Scheme expressions whose values differ under left-to-right and right-to-left evaluation orders.  The inferred expressions return different values under Vicare Scheme, Petite Chez Scheme, and Racket.
