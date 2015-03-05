@@ -18,6 +18,17 @@
      (absento (closure _.1) (closure _.2)
               (void _.1) (void _.2)))))
 
+;; The resulting expression, 
+;;
+;; ((lambda (_.0)
+;;    (cons _.0 (set! _.0 '_.1)))
+;;  '_.2)
+;;
+;; evaluates to (_.1 . #<void>) in Vicare and Petite,
+;; and evaluates to (_.2 . #<void>) in Racket.
+
+
+
 ;; Find a program that evaluates to either (you) or (lamp):
 (test "2"
   (run 1 (expr)
@@ -29,6 +40,17 @@
      (=/= ((_.0 cons)) ((_.0 lambda)) ((_.0 quote)) ((_.0 set!)) ((_.0 void))
           ((_.1 quote)) ((_.1 void)))
      (sym _.0 _.1))))
+
+;; The resulting expression,
+;;
+;; ((lambda (_.0)
+;;    (cons _.0 ((lambda (_.1) '()) (set! _.0 'lamp))))
+;;  'you)
+;;
+;; evaluates to (you) in Vicare and Racket,
+;; and evaluates to (lamp) in Petite.
+
+
 
 ;; Find a program that evaluates to either (I love you) or (I love lamp):
 (test "3"
@@ -43,15 +65,23 @@
           ((_.1 quote)) ((_.1 void)) ((_.2 quote)) ((_.2 void)))
      (sym _.0 _.1 _.2))))
 
+;; The resulting expression,
+;;
+;; ((lambda (_.0)
+;;    (_.0 (set! _.0 (lambda (_.1) '(I love lamp)))))
+;;  (lambda (_.2)
+;;    '(I love you)))
+;;
+;; evaluates to (I love you) in Racket,
+;; and evaluates to (I love lamp) in Vicare and Petite.
 
 
 (test "quines-left-to-right"
   (run 1 (q)
     (eval-left-to-righto q q))
-  '((((lambda (_.0) (list _.0 (list 'quote _.0)))
-      '(lambda (_.0) (list _.0 (list 'quote _.0))))
-     (=/= ((_.0 closure)) ((_.0 list)) ((_.0 quote))
-          ((_.0 void)))
+  '((((lambda (_.0) (cons _.0 (cons (cons 'quote (cons _.0 '())) '())))
+      '(lambda (_.0) (cons _.0 (cons (cons 'quote (cons _.0 '())) '()))))
+     (=/= ((_.0 closure)) ((_.0 cons)) ((_.0 quote)) ((_.0 void)))
      (sym _.0))))
 
 ;; doesn't seem to come back
@@ -59,9 +89,8 @@
 (test "quines-right-to-left"
   (run 1 (q)
     (eval-right-to-lefto q q))
-  '((((lambda (_.0) (list _.0 (list 'quote _.0)))
-      '(lambda (_.0) (list _.0 (list 'quote _.0))))
-     (=/= ((_.0 closure)) ((_.0 list)) ((_.0 quote))
-          ((_.0 void)))
+  '((((lambda (_.0) (cons _.0 (cons (cons 'quote (cons _.0 '())) '())))
+      '(lambda (_.0) (cons _.0 (cons (cons 'quote (cons _.0 '())) '()))))
+     (=/= ((_.0 closure)) ((_.0 cons)) ((_.0 quote)) ((_.0 void)))
      (sym _.0))))
 |#
