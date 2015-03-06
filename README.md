@@ -25,3 +25,7 @@ The examples in `append/variadic-lambda-tests.scm` concentrate on uses of `appen
 The examples in `unspecified-behavior/interp-curried-two-directions-tests.scm` show how we can infer Scheme expressions whose values differ under left-to-right and right-to-left evaluation orders.  The inferred expressions return different values under Vicare Scheme, Petite Chez Scheme, and Racket.
 
 ---
+
+The examples in `explicit-errors/explicit-error-tests.scm` show how we can generate Scheme expressions that, when evaluated, signal specific errors.  The interpreter can handle two specific types of errors: referencing unbound variables, and taking the `car`/`cdr` of a non-pair value.  It should be straight-forward to add other classes of explicit errors.  The interpreter uses all possible evaluation orders.
+
+---
